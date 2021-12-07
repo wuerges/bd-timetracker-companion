@@ -133,7 +133,7 @@ function App() {
   });
 
   return (
-    <div className="App">
+    <div className="App container">
       <div className="navbar">
         <button
           className="button"
@@ -168,7 +168,7 @@ function App() {
         </button>
       </div>
 
-      <div className="field">
+      <div className="navbar">
         <button className="button" onClick={() => setTodayDate(initialDate)}>
           Today
         </button>
