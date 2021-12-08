@@ -27,5 +27,7 @@
     "default_title": "Track!",
     "default_popup": "index.html"
   },
-  "manifest_version": 3
+  "manifest_version": 3,
+  "permissions": ["scripting"],
+  "host_permissions": ["https://timetracker.bairesdev.com/*"]
 }

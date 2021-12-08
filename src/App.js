@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { /*get,*/ set } from "@rybr/lenses";
 import "./App.css";
+import { track_entry } from "./tracker.js";
 
 function time_tracker_data(date, entries) {
   // Example:     ----------------
@@ -165,6 +166,12 @@ function App() {
           onClick={() => write_to_clipboard(todayDate, entries)}
         >
           Copy to clipboard
+        </button>
+        <button
+          className="button"
+          onClick={() => track_entry(todayDate, entries)}
+        >
+          Track entries
         </button>
       </div>
 
