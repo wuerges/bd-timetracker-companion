@@ -28,6 +28,6 @@
     "default_popup": "index.html"
   },
   "manifest_version": 3,
-  "permissions": ["scripting"],
+  "permissions": ["scripting", "unsafe-eval"],
   "host_permissions": ["https://timetracker.bairesdev.com/*"]
 }

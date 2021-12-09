@@ -76,6 +76,17 @@ async function waitForAddButtonAndClick(tabId) {
   );
 }
 
+async function triggerChangeEvent(tabId, qs) {
+  await chrome.scripting.executeScript({
+    target: { tabId: tabId },
+    func: (arg) => {
+      const event = new Event("change");
+      document.querySelector(arg).dispatchEvent(event);
+    },
+    args: [qs],
+  });
+}
+
 async function track_single_entry(date, params) {
   console.log(params);
   const tab = await getCurrentTab();
@@ -118,6 +129,26 @@ async function track_single_entry(date, params) {
     ]
   );
   console.log("Trust value:", focalPointValue);
+
+  triggerChangeEvent(
+    tab.id,
+    "#ctl00_ContentPlaceHolder_idProyectoDropDownList"
+  );
+
+  // const frameResults = await chrome.scripting.executeScript({
+  //   target: { tabId: tab.id },
+  //   func: (arg) => {
+  //     const event = new Event("change");
+  //     document.querySelector(arg).dispatchEvent(event);
+  //   },
+  //   args: ["#ctl00_ContentPlaceHolder_idProyectoDropDownList"],
+  // });
+  // const frameResults = await chrome.scripting.executeScript({
+  //   target: { tabId: tab.id },
+  //   func: (arg) => __doPostBack(arg, ""),
+  //   args: ["ctl00$ContentPlaceHolder$idProyectoDropDownList"],
+  // });
+  // console.log(frameResults[0].result);
 
   // function set_entry_data(theEntry) {
   //   // Sets the date
