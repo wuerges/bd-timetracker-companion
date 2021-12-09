@@ -1,6 +1,10 @@
 /* global chrome */
-/* global __doPostBack */
 
+export async function track_entry(date, params) {
+  for (var par of params) {
+    await track_single_entry(date, par);
+  }
+}
 async function getCurrentTab() {
   let queryOptions = { active: true, currentWindow: true };
   let [tab] = await chrome.tabs.query(queryOptions);
@@ -44,12 +48,6 @@ async function waitForQuerySelector(tabId, selector) {
   );
 }
 
-export async function track_entry(date, params) {
-  for (var par of params) {
-    await track_single_entry(date, par);
-  }
-}
-
 function findOptionValueContains(args) {
   console.log(args);
   const allOptions = document.querySelectorAll(args[0] + " > option");
@@ -64,15 +62,15 @@ function findOptionValueContains(args) {
   return null;
 }
 
-async function waitForAddButtonAndClick(tabId) {
-  await waitForQuerySelector(tabId, "a[href='TimeTrackerAdd.aspx']");
+async function waitForButtonAndClick(tabId, qs) {
+  await waitForQuerySelector(tabId, qs);
   await loopAndWait(
     tabId,
-    () => {
-      document.querySelector("a[href='TimeTrackerAdd.aspx']").click();
+    (arg) => {
+      document.querySelector(arg).click();
       return true;
     },
-    []
+    [qs]
   );
 }
 
@@ -143,9 +141,14 @@ const FOCAL_POINT_DROPDOWN =
 const COMMENTS_TEXTBOX = "#ctl00_ContentPlaceHolder_CommentsTextBox";
 const HOURS_FIELD = "#ctl00_ContentPlaceHolder_TiempoTextBox";
 
+const ACCEPT_BUTTON = "#ctl00_ContentPlaceHolder_btnAceptar";
+const ADD_BUTTON = "a[href='TimeTrackerAdd.aspx']";
+
 async function track_single_entry(date, params) {
   console.log(params);
   const tab = await getCurrentTab();
+
+  await waitForButtonAndClick(tab.id, ADD_BUTTON);
 
   await waitAndSelectValueFromOptionText(
     tab.id,
@@ -166,7 +169,7 @@ async function track_single_entry(date, params) {
     tab.id,
     DESCRIPTION_DROPDOWN,
     params.description,
-    true
+    false
   );
   await waitAndSelectValueFromOptionText(
     tab.id,
@@ -175,140 +178,5 @@ async function track_single_entry(date, params) {
     false
   );
 
-  // await waitForQuerySelector(tab.id, PROJECT_DROPDOWN);
-
-  // const projectValue = await waitForOptionValue(
-  //   tab.id,
-  //   PROJECT_DROPDOWN,
-  //   params.project
-  // );
-  // await setSelectValue(tab.id, PROJECT_DROPDOWN, projectValue);
-  // triggerChangeEvent(tab.id, PROJECT_DROPDOWN);
-
-  // console.log("Project value:", projectValue);
-
-  // const categoryValue = await executeAndReturn(
-  //   tab.id,
-  //   findOptionValueContains,
-  //   [
-  //     "#ctl00_ContentPlaceHolder_idCategoriaTareaXCargoLaboralDropDownList",
-  //     params.category,
-  //   ]
-  // );
-  // console.log("Trust value:", categoryValue);
-
-  // const descriptionValue = await executeAndReturn(
-  //   tab.id,
-  //   findOptionValueContains,
-  //   [
-  //     "#ctl00_ContentPlaceHolder_idTareaXCargoLaboralDownList",
-  //     params.description,
-  //   ]
-  // );
-  // console.log("Trust value:", descriptionValue);
-
-  // const focalPointValue = await executeAndReturn(
-  //   tab.id,
-  //   findOptionValueContains,
-  //   [
-  //     "#ctl00_ContentPlaceHolder_idFocalPointClientDropDownList",
-  //     params.focal_point,
-  //   ]
-  // );
-  // console.log("Trust value:", focalPointValue);
-
-  // const frameResults = await chrome.scripting.executeScript({
-  //   target: { tabId: tab.id },
-  //   func: (arg) => {
-  //     const event = new Event("change");
-  //     document.querySelector(arg).dispatchEvent(event);
-  //   },
-  //   args: ["#ctl00_ContentPlaceHolder_idProyectoDropDownList"],
-  // });
-  // const frameResults = await chrome.scripting.executeScript({
-  //   target: { tabId: tab.id },
-  //   func: (arg) => __doPostBack(arg, ""),
-  //   args: ["ctl00$ContentPlaceHolder$idProyectoDropDownList"],
-  // });
-  // console.log(frameResults[0].result);
-
-  // function set_entry_data(theEntry) {
-  //   // Sets the date
-
-  //   const dateElement = document.querySelector(
-  //     "#ctl00_ContentPlaceHolder_txtFrom"
-  //   );
-  //   dateElement.value = theEntry.date;
-  //   console.log(theEntry);
-
-  //   var projectOption;
-  //   const allOptions = document.querySelectorAll("option");
-  //   console.log(allOptions);
-  //   for (var i = 0; i < allOptions.length; ++i) {
-  //     console.log(allOptions[i]);
-  //     if (allOptions[i].text.includes("Trust")) {
-  //       projectOption = allOptions[i];
-  //       break;
-  //     }
-  //   }
-  //   console.log(projectOption);
-
-  //   const projectSelect = document.querySelector(
-  //     "#ctl00_ContentPlaceHolder_idProyectoDropDownList"
-  //   );
-
-  //   console.log(projectSelect);
-  //   projectSelect.value = projectOption.value;
-
-  //   __doPostBack("ctl00$ContentPlaceHolder$idProyectoDropDownList", "");
-
-  //   return true;
-  // }
-
-  // chrome.scripting.executeScript(
-  //   { target: { tabId: tab.id }, func: set_entry_data, args: [params] },
-  //   (injectionResults) => {
-  //     for (const frameResult of injectionResults) {
-  //       console.log("result 2: " + frameResult.result);
-  //     }
-  //   }
-  // );
+  await waitForButtonAndClick(tab.id, ACCEPT_BUTTON);
 }
-
-// async function do_everything_else() {
-//   // Sets date:
-//   $("#ctl00_ContentPlaceHolder_txtFrom")[0].value = "01/01/2020";
-//   // Sets project:
-//   $("#ctl00_ContentPlaceHolder_idProyectoDropDownList")[0].value = $(
-//     'option:contains("Trust")'
-//   )[0].value;
-//   await __doPostBack("ctl00$ContentPlaceHolder$idProyectoDropDownList", "");
-
-//   // Sets hours:
-//   $("#ctl00_ContentPlaceHolder_TiempoTextBox")[0].value = "hours";
-
-//   // Sets comments:
-//   $("#ctl00_ContentPlaceHolder_CommentsTextBox")[0].value = "comments";
-
-//   // Sets the Task Category
-//   $(
-//     "#ctl00_ContentPlaceHolder_idCategoriaTareaXCargoLaboralDropDownList"
-//   )[0].value = $('option:contains("Development")')[0].value;
-//   await __doPostBack(
-//     "ctl00$ContentPlaceHolder$idCategoriaTareaXCargoLaboralDropDownList",
-//     ""
-//   );
-
-//   // Sets the Task Description
-//   $("#ctl00_ContentPlaceHolder_idTareaXCargoLaboralDownList")[0].value = $(
-//     'option:contains("Debug")'
-//   )[0].value;
-
-//   // Sets the focal point, but the category must be set first!
-//   $("#ctl00_ContentPlaceHolder_idFocalPointClientDropDownList")[0].value = $(
-//     'option:contains("Ramiro")'
-//   )[0].value;
-
-//   //
-//   await $("#ctl00_ContentPlaceHolder_btnAceptar")[0].click();
-// }
