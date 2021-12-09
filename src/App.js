@@ -84,7 +84,7 @@ function App() {
 
   function duplicate(e) {
     var newEntries = [...entries].map((x) => set(x, "active", false));
-    newEntries.push(set(set({ ...e }, "comments", ""), "hours", 0));
+    newEntries.unshift(set(set({ ...e }, "comments", "."), "hours", 0));
     setEntries(newEntries);
   }
 
@@ -133,6 +133,10 @@ function App() {
     };
   });
 
+  function fromSecondToHours(v) {
+    return v / 3600;
+  }
+
   return (
     <div className="App container">
       <div className="navbar">
@@ -176,7 +180,11 @@ function App() {
       </div>
 
       <div className="navbar">
-        <button className="button" onClick={() => setTodayDate(initialDate)}>
+        <button
+          style={{ width: "100px" }}
+          className="button"
+          onClick={() => setTodayDate(initialDate)}
+        >
           Today
         </button>
         <input
@@ -184,6 +192,23 @@ function App() {
           className="input"
           value={todayDate}
           onChange={(event) => setTodayDate(event.target.value)}
+        />
+      </div>
+      <div className="navbar">
+        <button style={{ width: "100px" }} className="button" disabled>
+          Total
+        </button>
+        <input
+          style={{ maxWidth: "400px" }}
+          className="input"
+          value={
+            fromSecondToHours(
+              entries
+                .map((e) => Number.parseFloat(e.hours))
+                .reduce((a, b) => a + b)
+            ) + " hours"
+          }
+          disabled
         />
       </div>
 
@@ -208,7 +233,7 @@ function App() {
                   />
                   <input
                     className="input"
-                    value={(e.hours / 3600).toFixed(3)}
+                    value={(e.hours / 3600).toFixed(2) + " hours"}
                     disabled
                   />
                   <button
