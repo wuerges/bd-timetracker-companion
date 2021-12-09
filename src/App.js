@@ -58,9 +58,9 @@ function break_long_entry_in_pieces(pEntry) {
     }
 
     if (total > 0) {
-      var piece = { ...entry };
-      piece.hours = total;
-      pieces.push(add_count(piece, count));
+      var remainingPiece = { ...entry };
+      remainingPiece.hours = total;
+      pieces.push(add_count(remainingPiece, count));
     }
     return pieces;
   } else {
