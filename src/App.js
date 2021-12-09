@@ -126,8 +126,9 @@ function AccurateTimer(props) {
       if (active) {
         time.current =
           accumulated.current + new Date().getTime() - initial.current;
-        setTimeCallback(time.current / 1000);
-        setTimeView(time.current / 1000 / 60);
+        console.log(time.current);
+        // setTimeCallback(time.current / 1000);
+        setTimeView(time.current / 1000);
       } else {
       }
     }, 1000);
@@ -144,25 +145,32 @@ function AccurateTimer(props) {
     setActive(!active);
   }
 
+  function timePrinter(number) {
+    const seconds = Math.floor(number / 1000) % 60;
+    const minutes = Math.floor(number / 1000 / 60) % 60;
+    const hours = Math.floor(number / 1000 / 60 / 60);
+
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       <input
         className="input"
-        value={active ? `${timeView.toFixed(2)} min` : timeView}
+        value={timeView}
         onChange={(event) => {
           var auxTime = Number.parseFloat(event.target.value);
           if (!auxTime) auxTime = 0;
-          time.current = auxTime * 1000 * 60;
+          time.current = auxTime * 1000;
           setTimeView(auxTime);
-          setTimeCallback(auxTime * 60);
+          console.log(time.current);
+          setTimeCallback(time.current / 1000);
         }}
         disabled={active}
       />
-      <input
-        className="input"
-        value={(timeView / 60).toFixed(2) + " hours"}
-        disabled
-      />
+      <input className="input" value={timePrinter(timeView * 1000)} disabled />
       <button
         className={"button " + (active ? "is-danger" : "is-success")}
         onClick={toggleActive}
