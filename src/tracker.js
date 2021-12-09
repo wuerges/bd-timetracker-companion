@@ -49,12 +49,8 @@ async function waitForQuerySelector(tabId, selector) {
 }
 
 function findOptionValueContains(args) {
-  console.log(args);
   const allOptions = document.querySelectorAll(args[0] + " > option");
-  console.log(allOptions);
   for (var i = 0; i < allOptions.length; ++i) {
-    console.log(allOptions[i]);
-    console.log(allOptions[i].text);
     if (allOptions[i].text.includes(args[1])) {
       return allOptions[i].value;
     }
@@ -145,7 +141,6 @@ const ACCEPT_BUTTON = "#ctl00_ContentPlaceHolder_btnAceptar";
 const ADD_BUTTON = "a[href='TimeTrackerAdd.aspx']";
 
 async function track_single_entry(date, params) {
-  console.log(params);
   const tab = await getCurrentTab();
 
   await waitForButtonAndClick(tab.id, ADD_BUTTON);
