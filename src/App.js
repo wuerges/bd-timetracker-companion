@@ -110,14 +110,25 @@ function setToLocalStorage(key, value) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+function timePrinter(number) {
+  const seconds = Math.floor(number / 1000) % 60;
+  const minutes = Math.floor(number / 1000 / 60) % 60;
+  const hours = Math.floor(number / 1000 / 60 / 60);
+
+  return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
+}
+
 function AccurateTimer(props) {
-  const setTimeCallback = props.data;
+  const setTimeCallback = props.data.callback;
+  const initialTime = props.data.initialTime;
 
-  const [timeView, setTimeView] = useState(0);
+  const time = useRef(initialTime * 1000);
+  const [timeView, setTimeView] = useState(time.current / 1000);
 
-  const time = useRef(0);
   const initial = useRef(new Date().getTime());
-  const accumulated = useRef(0);
+  const accumulated = useRef(time.current);
 
   const [active, setActive] = useState(false);
 
@@ -126,8 +137,7 @@ function AccurateTimer(props) {
       if (active) {
         time.current =
           accumulated.current + new Date().getTime() - initial.current;
-        console.log(time.current);
-        // setTimeCallback(time.current / 1000);
+        setTimeCallback(time.current / 1000);
         setTimeView(time.current / 1000);
       } else {
       }
@@ -145,16 +155,6 @@ function AccurateTimer(props) {
     setActive(!active);
   }
 
-  function timePrinter(number) {
-    const seconds = Math.floor(number / 1000) % 60;
-    const minutes = Math.floor(number / 1000 / 60) % 60;
-    const hours = Math.floor(number / 1000 / 60 / 60);
-
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  }
-
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       <input
@@ -165,7 +165,6 @@ function AccurateTimer(props) {
           if (!auxTime) auxTime = 0;
           time.current = auxTime * 1000;
           setTimeView(auxTime);
-          console.log(time.current);
           setTimeCallback(time.current / 1000);
         }}
         disabled={active}
@@ -212,8 +211,8 @@ function App() {
   );
 
   function duplicate(e) {
-    var newEntries = [...entries].map((x) => set(x, "active", false));
-    newEntries.unshift(set(set({ ...e }, "comments", "."), "hours", 0));
+    var newEntries = [...entries];
+    newEntries.push({ ...e });
     setEntries(newEntries);
   }
 
@@ -241,38 +240,10 @@ function App() {
     setEntries(set([...entries], i, "focal_point", v));
   }
 
-  function toggleActive(i) {
-    setEntries(set([...entries], i, "active", (x) => !x));
-  }
-
   useEffect(() => {
-    // console.log("Saving stuff to local storage");
     window.localStorage.setItem("entries", JSON.stringify(entries));
     window.localStorage.setItem("breakHourly", JSON.stringify(breakHourly));
   }, [entries, breakHourly]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setEntries(
-        [...entries].map((e) => {
-          if (e.active) {
-            return set(e, "hours", (x) => parseInt(x) + 1);
-          }
-          return e;
-        })
-      );
-      return false;
-    }, 1000);
-    return () => {
-      clearInterval(timer);
-    };
-  });
-
-  function fromSecondToHours(v) {
-    return v / 3600;
-  }
-
-  const [timeGlobal, setTimeGlobal] = useState(0);
 
   return (
     <div className="App container">
@@ -336,13 +307,11 @@ function App() {
         </button>
         <input
           className="input"
-          value={
-            fromSecondToHours(
-              entries
-                .map((e) => Number.parseFloat(e.hours))
-                .reduce((a, b) => a + b)
-            ) + " hours"
-          }
+          value={timePrinter(
+            entries
+              .map((e) => Number.parseFloat(e.hours))
+              .reduce((a, b) => a + b) * 1000
+          )}
           disabled
         />
         <button
@@ -369,7 +338,12 @@ function App() {
             return (
               <tr key={i}>
                 <td>
-                  <AccurateTimer data={(t) => setHours(i, t)} />
+                  <AccurateTimer
+                    data={{
+                      initialTime: e.hours,
+                      callback: (t) => setHours(i, t),
+                    }}
+                  />
                 </td>
                 <td>
                   <input
