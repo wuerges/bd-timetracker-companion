@@ -25,6 +25,15 @@ async function loopAndWait(tabId, func, args) {
   }
 }
 
+async function executeAndReturn(tabId, func, args) {
+  const frameResults = await chrome.scripting.executeScript({
+    target: { tabId: tabId },
+    func: func,
+    args: [args],
+  });
+  return frameResults[0].result;
+}
+
 async function waitForQuerySelector(tabId, selector) {
   await loopAndWait(
     tabId,
@@ -37,49 +46,69 @@ async function waitForQuerySelector(tabId, selector) {
 
 export async function track_entry(date, params) {
   for (var par of params) {
-    await track_single_entry({ date: date, params: par });
+    await track_single_entry(date, par);
   }
 }
 
-function searchQuerySelector(selector) {
-  return document.querySelector(selector) ? true : false;
+function findOptionValueContains(text) {
+  const allOptions = document.querySelectorAll("option");
+  // console.log(allOptions);
+  for (var i = 0; i < allOptions.length; ++i) {
+    // console.log(allOptions[i]);
+    // console.log(allOptions[i].text);
+    if (allOptions[i].text.includes(text)) {
+      return allOptions[i].value;
+    }
+  }
+  return null;
 }
-async function track_single_entry(params) {
+
+async function waitForAddButtonAndClick(tabId) {
+  await waitForQuerySelector(tabId, "a[href='TimeTrackerAdd.aspx']");
+  await loopAndWait(
+    tabId,
+    () => {
+      document.querySelector("a[href='TimeTrackerAdd.aspx']").click();
+      return true;
+    },
+    []
+  );
+}
+
+async function track_single_entry(date, params) {
+  console.log(params);
   const tab = await getCurrentTab();
-  await waitForQuerySelector(tab.id, "a[href='TimeTrackerAdd.aspx']");
+  // waitForAddButtonAndClick(tab.id);
+  await waitForQuerySelector(
+    tab.id,
+    "#ctl00_ContentPlaceHolder_idProyectoDropDownList"
+  );
+  const projectValue = await executeAndReturn(
+    tab.id,
+    findOptionValueContains,
+    params.project
+  );
+  console.log("Trust value:", projectValue);
+  const categoryValue = await executeAndReturn(
+    tab.id,
+    findOptionValueContains,
+    params.category
+  );
+  console.log("Trust value:", categoryValue);
 
-  function tracker_click_add() {
-    document.querySelector("a[href='TimeTrackerAdd.aspx']").click();
-    return new Promise((r) => setTimeout(r, 2000)).then(
-      (_) => true,
-      (_) => false
-    );
-  }
+  const descriptionValue = await executeAndReturn(
+    tab.id,
+    findOptionValueContains,
+    params.description
+  );
+  console.log("Trust value:", descriptionValue);
 
-  const result1 = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: tracker_click_add,
-  });
-
-  // await waitForQuerySelector(tab.id, "#ctl00_ContentPlaceHolder_txtFrom");
-
-  console.log("Showing result 1");
-  console.log(result1);
-  const result2 = await result1;
-  console.log("Showing result 2");
-  console.log(result2);
-  // chrome.scripting.executeScript(
-  //   { target: { tabId: tab.id }, func: tracker_click_add },
-  //   (injectionResults) => {
-  //     for (const frameResult of injectionResults) {
-  //       console.log("result 1: " + frameResult.result);
-  //     }
-  //   }
-  // );
-
-  console.log("before 2 seconds");
-  await new Promise((r) => setTimeout(r, 2000));
-  console.log("waited 2 seconds");
+  const focalPointValue = await executeAndReturn(
+    tab.id,
+    findOptionValueContains,
+    params.focal_point
+  );
+  console.log("Trust value:", focalPointValue);
 
   // function set_entry_data(theEntry) {
   //   // Sets the date
