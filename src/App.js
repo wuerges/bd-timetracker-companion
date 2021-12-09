@@ -100,7 +100,11 @@ function formatDate(date) {
 }
 
 function getFromLocalStorage(key, def) {
-  return JSON.parse(window.localStorage.getItem(key)) || def;
+  const item = window.localStorage.getItem(key);
+  if (item) {
+    return JSON.parse(item);
+  }
+  return def;
 }
 function setToLocalStorage(key, value) {
   window.localStorage.setItem(key, JSON.stringify(value));
@@ -132,12 +136,18 @@ function App() {
   );
 
   const [todayDate, setTodayDate] = useState(initialDate);
-  const [breakHourly, setBreakHourly] = useState(false);
+  const [breakHourly, setBreakHourly] = useState(
+    getFromLocalStorage("breakHourly", false)
+  );
 
   function duplicate(e) {
     var newEntries = [...entries].map((x) => set(x, "active", false));
     newEntries.unshift(set(set({ ...e }, "comments", "."), "hours", 0));
     setEntries(newEntries);
+  }
+
+  function toggleBreakHourly() {
+    setBreakHourly(!breakHourly);
   }
 
   function setHours(i, v) {
@@ -165,8 +175,10 @@ function App() {
   }
 
   useEffect(() => {
+    // console.log("Saving stuff to local storage");
     window.localStorage.setItem("entries", JSON.stringify(entries));
-  });
+    window.localStorage.setItem("breakHourly", JSON.stringify(breakHourly));
+  }, [entries, breakHourly]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -262,7 +274,7 @@ function App() {
         />
         <button
           className={"button " + (breakHourly ? "is-danger" : "is-success")}
-          onClick={(_) => setBreakHourly(!breakHourly)}
+          onClick={toggleBreakHourly}
         >
           {breakHourly
             ? "Break items into hours"
