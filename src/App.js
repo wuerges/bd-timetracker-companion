@@ -147,7 +147,7 @@ function App() {
 
   return (
     <div className="App container">
-      <div className="navbar">
+      <div style={{ display: "flex" }}>
         <button
           className="button"
           onClick={() => {
@@ -189,27 +189,19 @@ function App() {
         </button>
       </div>
 
-      <div className="navbar">
-        <button
-          style={{ width: "100px" }}
-          className="button"
-          onClick={() => setTodayDate(initialDate)}
-        >
+      <div style={{ display: "flex" }}>
+        <button className="button" onClick={() => setTodayDate(initialDate)}>
           Today
         </button>
         <input
-          style={{ maxWidth: "400px" }}
           className="input"
           value={todayDate}
           onChange={(event) => setTodayDate(event.target.value)}
         />
-      </div>
-      <div className="navbar">
-        <button style={{ width: "100px" }} className="button" disabled>
+        <button className="button" disabled>
           Total
         </button>
         <input
-          style={{ maxWidth: "400px" }}
           className="input"
           value={
             fromSecondToHours(
@@ -226,7 +218,7 @@ function App() {
         <thead>
           <tr>
             <td>Time</td>
-            <td>Project/Category/Description</td>
+            <td>Proj/Category/Description</td>
             <td>Comments</td>
             <td>Focal point</td>
           </tr>
@@ -235,25 +227,27 @@ function App() {
           {entries.map((e, i) => {
             return (
               <tr key={i}>
-                <td style={{ width: "100px" }}>
-                  <input
-                    className="input"
-                    value={e.hours}
-                    onChange={(event) => setHours(i, event.target.value)}
-                  />
-                  <input
-                    className="input"
-                    value={(e.hours / 3600).toFixed(2) + " hours"}
-                    disabled
-                  />
-                  <button
-                    className={
-                      "button " + (e.active ? "is-danger" : "is-success")
-                    }
-                    onClick={(_) => toggleActive(i)}
-                  >
-                    {e.active ? "Active" : "Innactive"}
-                  </button>
+                <td>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <input
+                      className="input"
+                      value={e.hours}
+                      onChange={(event) => setHours(i, event.target.value)}
+                    />
+                    <input
+                      className="input"
+                      value={(e.hours / 3600).toFixed(2) + " hours"}
+                      disabled
+                    />
+                    <button
+                      className={
+                        "button " + (e.active ? "is-danger" : "is-success")
+                      }
+                      onClick={(_) => toggleActive(i)}
+                    >
+                      {e.active ? "Active" : "Innactive"}
+                    </button>
+                  </div>
                 </td>
                 <td>
                   <input
@@ -272,7 +266,7 @@ function App() {
                     onChange={(event) => setDescription(i, event.target.value)}
                   />
                 </td>
-                <td style={{ minWidth: "300px" }}>
+                <td style={{ minWidth: "250px" }}>
                   <textarea
                     className="textarea"
                     value={e.comments}
@@ -283,32 +277,29 @@ function App() {
                     }
                   />
                 </td>
-                <td style={{ width: "200px", minWidth: "200px" }}>
-                  <input
-                    className="input"
-                    value={e.focal_point}
-                    onChange={(event) => setFocalPoint(i, event.target.value)}
-                  />
-                  <button
-                    style={{ width: "200px", minWidth: "200px" }}
-                    className="button"
-                    onClick={() => duplicate(e)}
-                  >
-                    Duplicate entry
-                  </button>
-                  {entries.length > 1 ? (
-                    <button
-                      style={{ width: "200px", minWidth: "200px" }}
-                      className="button"
-                      onClick={() =>
-                        setEntries(entries.filter((_, ii) => ii !== i))
-                      }
-                    >
-                      Remove entry
+                <td>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <input
+                      className="input"
+                      value={e.focal_point}
+                      onChange={(event) => setFocalPoint(i, event.target.value)}
+                    />
+                    <button className="button" onClick={() => duplicate(e)}>
+                      Duplicate entry
                     </button>
-                  ) : (
-                    <></>
-                  )}
+                    {entries.length > 1 ? (
+                      <button
+                        className="button"
+                        onClick={() =>
+                          setEntries(entries.filter((_, ii) => ii !== i))
+                        }
+                      >
+                        Remove entry
+                      </button>
+                    ) : (
+                      <></>
+                    )}
+                  </div>
                 </td>
               </tr>
             );
