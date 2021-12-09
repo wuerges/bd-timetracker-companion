@@ -50,13 +50,14 @@ export async function track_entry(date, params) {
   }
 }
 
-function findOptionValueContains(text) {
-  const allOptions = document.querySelectorAll("option");
-  // console.log(allOptions);
+function findOptionValueContains(args) {
+  console.log(args);
+  const allOptions = document.querySelectorAll(args[0] + " > option");
+  console.log(allOptions);
   for (var i = 0; i < allOptions.length; ++i) {
-    // console.log(allOptions[i]);
-    // console.log(allOptions[i].text);
-    if (allOptions[i].text.includes(text)) {
+    console.log(allOptions[i]);
+    console.log(allOptions[i].text);
+    if (allOptions[i].text.includes(args[1])) {
       return allOptions[i].value;
     }
   }
@@ -83,30 +84,38 @@ async function track_single_entry(date, params) {
     tab.id,
     "#ctl00_ContentPlaceHolder_idProyectoDropDownList"
   );
-  const projectValue = await executeAndReturn(
-    tab.id,
-    findOptionValueContains,
-    params.project
-  );
+  const projectValue = await executeAndReturn(tab.id, findOptionValueContains, [
+    "#ctl00_ContentPlaceHolder_idProyectoDropDownList",
+    params.project,
+  ]);
   console.log("Trust value:", projectValue);
   const categoryValue = await executeAndReturn(
     tab.id,
     findOptionValueContains,
-    params.category
+    [
+      "#ctl00_ContentPlaceHolder_idCategoriaTareaXCargoLaboralDropDownList",
+      params.category,
+    ]
   );
   console.log("Trust value:", categoryValue);
 
   const descriptionValue = await executeAndReturn(
     tab.id,
     findOptionValueContains,
-    params.description
+    [
+      "#ctl00_ContentPlaceHolder_idTareaXCargoLaboralDownList",
+      params.description,
+    ]
   );
   console.log("Trust value:", descriptionValue);
 
   const focalPointValue = await executeAndReturn(
     tab.id,
     findOptionValueContains,
-    params.focal_point
+    [
+      "#ctl00_ContentPlaceHolder_idFocalPointClientDropDownList",
+      params.focal_point,
+    ]
   );
   console.log("Trust value:", focalPointValue);
 
