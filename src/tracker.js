@@ -87,19 +87,48 @@ async function triggerChangeEvent(tabId, qs) {
   });
 }
 
+async function waitForOptionValue(tabId, parentSelect, optionText) {
+  while (true) {
+    const categoryValue = await executeAndReturn(
+      tabId,
+      findOptionValueContains,
+      [parentSelect, optionText]
+    );
+    if (categoryValue) {
+      return categoryValue;
+    }
+    await sleep(1000);
+  }
+}
+
+async function setSelectValue(tabId, qs, value) {
+  await executeAndReturn(
+    tabId,
+    (args) => {
+      document.querySelector(args[0]).value = args[1];
+    },
+    [qs, value]
+  );
+}
+
+const PROJECT_DROPDOWN = "#ctl00_ContentPlaceHolder_idProyectoDropDownList";
+
 async function track_single_entry(date, params) {
   console.log(params);
   const tab = await getCurrentTab();
   // waitForAddButtonAndClick(tab.id);
-  await waitForQuerySelector(
+  await waitForQuerySelector(tab.id, PROJECT_DROPDOWN);
+
+  const projectValue = await waitForOptionValue(
     tab.id,
-    "#ctl00_ContentPlaceHolder_idProyectoDropDownList"
+    PROJECT_DROPDOWN,
+    params.project
   );
-  const projectValue = await executeAndReturn(tab.id, findOptionValueContains, [
-    "#ctl00_ContentPlaceHolder_idProyectoDropDownList",
-    params.project,
-  ]);
-  console.log("Trust value:", projectValue);
+  await setSelectValue(tab.id, PROJECT_DROPDOWN, projectValue);
+  triggerChangeEvent(tab.id, PROJECT_DROPDOWN);
+
+  console.log("Project value:", projectValue);
+
   const categoryValue = await executeAndReturn(
     tab.id,
     findOptionValueContains,
@@ -129,11 +158,6 @@ async function track_single_entry(date, params) {
     ]
   );
   console.log("Trust value:", focalPointValue);
-
-  triggerChangeEvent(
-    tab.id,
-    "#ctl00_ContentPlaceHolder_idProyectoDropDownList"
-  );
 
   // const frameResults = await chrome.scripting.executeScript({
   //   target: { tabId: tab.id },
