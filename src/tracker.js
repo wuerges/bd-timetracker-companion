@@ -101,7 +101,11 @@ async function waitForOptionValue(tabId, parentSelect, optionText) {
   }
 }
 
-async function setSelectValue(tabId, qs, value) {
+async function waitForReadyState(tabId) {
+  await loopAndWait(tabId, () => document.readyState === "complete", []);
+}
+
+async function setFieldValue(tabId, qs, value) {
   await executeAndReturn(
     tabId,
     (args) => {
@@ -111,53 +115,107 @@ async function setSelectValue(tabId, qs, value) {
   );
 }
 
+async function waitAndSelectValueFromOptionText(tabId, qs, text, mustChange) {
+  await waitForQuerySelector(tabId, qs);
+  const value = await waitForOptionValue(tabId, qs, text);
+  await setFieldValue(tabId, qs, value);
+  if (mustChange) {
+    triggerChangeEvent(tabId, qs);
+    await sleep(500);
+  }
+  await waitForReadyState(tabId);
+}
+async function waitAndSetFromValue(tabId, qs, value) {
+  await waitForQuerySelector(tabId, qs);
+  await setFieldValue(tabId, qs, value);
+  await waitForReadyState(tabId);
+}
+
+const DATE_FIELD = "#ctl00_ContentPlaceHolder_txtFrom";
 const PROJECT_DROPDOWN = "#ctl00_ContentPlaceHolder_idProyectoDropDownList";
+const CATEGORY_DROPDOWN =
+  "#ctl00_ContentPlaceHolder_idCategoriaTareaXCargoLaboralDropDownList";
+const DESCRIPTION_DROPDOWN =
+  "#ctl00_ContentPlaceHolder_idTareaXCargoLaboralDownList";
+const FOCAL_POINT_DROPDOWN =
+  "#ctl00_ContentPlaceHolder_idFocalPointClientDropDownList";
+
+const COMMENTS_TEXTBOX = "#ctl00_ContentPlaceHolder_CommentsTextBox";
+const HOURS_FIELD = "#ctl00_ContentPlaceHolder_TiempoTextBox";
 
 async function track_single_entry(date, params) {
   console.log(params);
   const tab = await getCurrentTab();
-  // waitForAddButtonAndClick(tab.id);
-  await waitForQuerySelector(tab.id, PROJECT_DROPDOWN);
 
-  const projectValue = await waitForOptionValue(
+  await waitAndSelectValueFromOptionText(
     tab.id,
     PROJECT_DROPDOWN,
-    params.project
+    params.project,
+    true
   );
-  await setSelectValue(tab.id, PROJECT_DROPDOWN, projectValue);
-  triggerChangeEvent(tab.id, PROJECT_DROPDOWN);
-
-  console.log("Project value:", projectValue);
-
-  const categoryValue = await executeAndReturn(
+  await waitAndSetFromValue(tab.id, DATE_FIELD, date);
+  await waitAndSetFromValue(tab.id, HOURS_FIELD, params.hours);
+  await waitAndSetFromValue(tab.id, COMMENTS_TEXTBOX, params.comments);
+  await waitAndSelectValueFromOptionText(
     tab.id,
-    findOptionValueContains,
-    [
-      "#ctl00_ContentPlaceHolder_idCategoriaTareaXCargoLaboralDropDownList",
-      params.category,
-    ]
+    CATEGORY_DROPDOWN,
+    params.category,
+    true
   );
-  console.log("Trust value:", categoryValue);
-
-  const descriptionValue = await executeAndReturn(
+  await waitAndSelectValueFromOptionText(
     tab.id,
-    findOptionValueContains,
-    [
-      "#ctl00_ContentPlaceHolder_idTareaXCargoLaboralDownList",
-      params.description,
-    ]
+    DESCRIPTION_DROPDOWN,
+    params.description,
+    true
   );
-  console.log("Trust value:", descriptionValue);
-
-  const focalPointValue = await executeAndReturn(
+  await waitAndSelectValueFromOptionText(
     tab.id,
-    findOptionValueContains,
-    [
-      "#ctl00_ContentPlaceHolder_idFocalPointClientDropDownList",
-      params.focal_point,
-    ]
+    FOCAL_POINT_DROPDOWN,
+    params.focal_point,
+    false
   );
-  console.log("Trust value:", focalPointValue);
+
+  // await waitForQuerySelector(tab.id, PROJECT_DROPDOWN);
+
+  // const projectValue = await waitForOptionValue(
+  //   tab.id,
+  //   PROJECT_DROPDOWN,
+  //   params.project
+  // );
+  // await setSelectValue(tab.id, PROJECT_DROPDOWN, projectValue);
+  // triggerChangeEvent(tab.id, PROJECT_DROPDOWN);
+
+  // console.log("Project value:", projectValue);
+
+  // const categoryValue = await executeAndReturn(
+  //   tab.id,
+  //   findOptionValueContains,
+  //   [
+  //     "#ctl00_ContentPlaceHolder_idCategoriaTareaXCargoLaboralDropDownList",
+  //     params.category,
+  //   ]
+  // );
+  // console.log("Trust value:", categoryValue);
+
+  // const descriptionValue = await executeAndReturn(
+  //   tab.id,
+  //   findOptionValueContains,
+  //   [
+  //     "#ctl00_ContentPlaceHolder_idTareaXCargoLaboralDownList",
+  //     params.description,
+  //   ]
+  // );
+  // console.log("Trust value:", descriptionValue);
+
+  // const focalPointValue = await executeAndReturn(
+  //   tab.id,
+  //   findOptionValueContains,
+  //   [
+  //     "#ctl00_ContentPlaceHolder_idFocalPointClientDropDownList",
+  //     params.focal_point,
+  //   ]
+  // );
+  // console.log("Trust value:", focalPointValue);
 
   // const frameResults = await chrome.scripting.executeScript({
   //   target: { tabId: tab.id },

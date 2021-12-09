@@ -26,6 +26,14 @@ function time_tracker_data(date, entries) {
   );
 }
 
+function fix_seconds_to_hours(entries) {
+  return entries.map((e) => {
+    var e2 = { ...e };
+    e2.hours = (Number.parseInt(e.hours) / 3600).toFixed(3);
+    return e2;
+  });
+}
+
 function write_to_clipboard(date, entries) {
   navigator.clipboard.writeText(time_tracker_data(date, entries));
 }
@@ -173,7 +181,9 @@ function App() {
         </button>
         <button
           className="button"
-          onClick={() => track_entry(todayDate, entries)}
+          onClick={() => {
+            track_entry(todayDate, fix_seconds_to_hours(entries));
+          }}
         >
           Track entries
         </button>
