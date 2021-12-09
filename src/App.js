@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { /*get,*/ set } from "@rybr/lenses";
 import "./App.css";
 import { track_entry } from "./tracker.js";
@@ -110,6 +110,69 @@ function setToLocalStorage(key, value) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+function AccurateTimer(props) {
+  const setTimeCallback = props.data;
+
+  const [timeView, setTimeView] = useState(0);
+
+  const time = useRef(0);
+  const initial = useRef(new Date().getTime());
+  const accumulated = useRef(0);
+
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (active) {
+        time.current =
+          accumulated.current + new Date().getTime() - initial.current;
+        setTimeCallback(time.current / 1000);
+        setTimeView(time.current / 1000 / 60);
+      } else {
+      }
+    }, 1000);
+    return () => {
+      clearInterval(timer);
+    };
+  });
+
+  function toggleActive(_) {
+    if (!active) {
+      accumulated.current = time.current;
+      initial.current = new Date().getTime();
+    }
+    setActive(!active);
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <input
+        className="input"
+        value={active ? `${timeView.toFixed(2)} min` : timeView}
+        onChange={(event) => {
+          var auxTime = Number.parseFloat(event.target.value);
+          if (!auxTime) auxTime = 0;
+          time.current = auxTime * 1000 * 60;
+          setTimeView(auxTime);
+          setTimeCallback(auxTime * 60);
+        }}
+        disabled={active}
+      />
+      <input
+        className="input"
+        value={(timeView / 60).toFixed(2) + " hours"}
+        disabled
+      />
+      <button
+        className={"button " + (active ? "is-danger" : "is-success")}
+        onClick={toggleActive}
+      >
+        {active ? "Active" : "Innactive"}
+      </button>
+    </div>
+  );
+}
+
 function App() {
   // Fields from the official time tracker:
   // Date (dd/mm/yyyy)             -> Default today (new Date()): 'data'
@@ -200,6 +263,8 @@ function App() {
   function fromSecondToHours(v) {
     return v / 3600;
   }
+
+  const [timeGlobal, setTimeGlobal] = useState(0);
 
   return (
     <div className="App container">
@@ -296,26 +361,7 @@ function App() {
             return (
               <tr key={i}>
                 <td>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <input
-                      className="input"
-                      value={e.hours}
-                      onChange={(event) => setHours(i, event.target.value)}
-                    />
-                    <input
-                      className="input"
-                      value={(e.hours / 3600).toFixed(2) + " hours"}
-                      disabled
-                    />
-                    <button
-                      className={
-                        "button " + (e.active ? "is-danger" : "is-success")
-                      }
-                      onClick={(_) => toggleActive(i)}
-                    >
-                      {e.active ? "Active" : "Innactive"}
-                    </button>
-                  </div>
+                  <AccurateTimer data={(t) => setHours(i, t)} />
                 </td>
                 <td>
                   <input
