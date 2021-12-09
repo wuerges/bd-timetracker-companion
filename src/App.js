@@ -16,22 +16,65 @@ function time_tracker_data(date, entries) {
     entries
       .map(
         (e) =>
-          `${date}\t${e.project}\t${(e.hours / 3600).toFixed(3)}\t${
-            e.category
-          }\t${e.description}\t${e.comments === "" ? "." : e.comments}\t${
-            e.focal_point
-          }`
+          `${date}\t${e.project}\t${e.hours}\t${e.category}\t${e.description}\t${e.comments}\t${e.focal_point}`
       )
       .join("\n") + "\n"
   );
 }
 
-function fix_seconds_to_hours(entries) {
-  return entries.map((e) => {
-    var e2 = { ...e };
-    e2.hours = (Number.parseInt(e.hours) / 3600).toFixed(3);
-    return e2;
-  });
+function fix_hours(entry) {
+  var e2 = { ...entry };
+  e2.hours = (Number.parseInt(entry.hours) / 3600).toFixed(3);
+  return e2;
+}
+
+function fix_empty_commment(entry) {
+  var piece = { ...entry };
+  piece.comments = entry.comments === "" ? "." : entry.comments;
+  return piece;
+}
+
+function add_count(entry, count) {
+  var piece = { ...entry };
+  if (count > 1) {
+    piece.comments = `${entry.comments} (${count})`;
+  }
+  return piece;
+}
+
+function break_long_entry_in_pieces(pEntry) {
+  const entry = pEntry;
+  var count = 1;
+  if (entry.hours > 3600) {
+    var pieces = [];
+
+    var total = entry.hours;
+    while (total > 3600) {
+      var piece = { ...entry };
+      piece.hours = 3600;
+      pieces.push(add_count(piece, count));
+      total -= 3600;
+      count += 1;
+    }
+
+    if (total > 0) {
+      var piece = { ...entry };
+      piece.hours = total;
+      pieces.push(add_count(piece, count));
+    }
+    return pieces;
+  } else {
+    return [entry];
+  }
+}
+
+function prepare_data(pEntries, shouldBreak) {
+  const entries = pEntries.map(fix_empty_commment);
+
+  const newEntries = shouldBreak
+    ? entries.flatMap(break_long_entry_in_pieces)
+    : entries;
+  return newEntries.map(fix_hours);
 }
 
 function write_to_clipboard(date, entries) {
@@ -89,6 +132,7 @@ function App() {
   );
 
   const [todayDate, setTodayDate] = useState(initialDate);
+  const [breakHourly, setBreakHourly] = useState(false);
 
   function duplicate(e) {
     var newEntries = [...entries].map((x) => set(x, "active", false));
@@ -169,20 +213,24 @@ function App() {
         </button>
         <button
           className="button"
-          onClick={() => download_csv_file(todayDate, entries)}
+          onClick={() =>
+            download_csv_file(todayDate, prepare_data(entries, breakHourly))
+          }
         >
           Download
         </button>
         <button
           className="button"
-          onClick={() => write_to_clipboard(todayDate, entries)}
+          onClick={() =>
+            write_to_clipboard(todayDate, prepare_data(entries, breakHourly))
+          }
         >
           Copy to clipboard
         </button>
         <button
           className="button"
           onClick={() => {
-            track_entry(todayDate, fix_seconds_to_hours(entries));
+            track_entry(todayDate, prepare_data(entries, breakHourly));
           }}
         >
           Track entries
@@ -212,6 +260,14 @@ function App() {
           }
           disabled
         />
+        <button
+          className={"button " + (breakHourly ? "is-danger" : "is-success")}
+          onClick={(_) => setBreakHourly(!breakHourly)}
+        >
+          {breakHourly
+            ? "Break items into hours"
+            : "Don't break items into hours"}
+        </button>
       </div>
 
       <table className="table">
