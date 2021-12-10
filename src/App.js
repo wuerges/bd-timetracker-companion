@@ -215,9 +215,7 @@ function App() {
 
   function duplicate(e) {
     var newEntries = [...entries];
-    var newE = { ...e };
-    newE.hours = 0;
-    newEntries.push(newE);
+    newEntries.unshift({ ...e, hours: 0 });
     setEntries(newEntries);
   }
 
