@@ -122,23 +122,25 @@ function timePrinter(number) {
 
 function AccurateTimer(props) {
   const setTimeCallback = props.data.callback;
-  const initialTime = props.data.initialTime;
 
-  const time = useRef(initialTime * 1000);
-  const [timeView, setTimeView] = useState(time.current / 1000);
+  const [time, setTime] = useState(props.data.initialTime * 1000);
 
   const initial = useRef(new Date().getTime());
-  const accumulated = useRef(time.current);
+  const accumulated = useRef(time);
 
   const [active, setActive] = useState(false);
+
+  function setTimeAndCallback(timeInMillis) {
+    setTimeCallback(timeInMillis / 1000);
+    setTime(timeInMillis);
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
       if (active) {
-        time.current =
-          accumulated.current + new Date().getTime() - initial.current;
-        setTimeCallback(time.current / 1000);
-        setTimeView(time.current / 1000);
+        setTimeAndCallback(
+          accumulated.current + new Date().getTime() - initial.current
+        );
       } else {
       }
     }, 1000);
@@ -149,7 +151,7 @@ function AccurateTimer(props) {
 
   function toggleActive(_) {
     if (!active) {
-      accumulated.current = time.current;
+      accumulated.current = time;
       initial.current = new Date().getTime();
     }
     setActive(!active);
@@ -159,17 +161,15 @@ function AccurateTimer(props) {
     <div style={{ display: "flex", flexDirection: "column" }}>
       <input
         className="input"
-        value={timeView}
+        value={time / 1000}
         onChange={(event) => {
           var auxTime = Number.parseFloat(event.target.value);
           if (!auxTime) auxTime = 0;
-          time.current = auxTime * 1000;
-          setTimeView(auxTime);
-          setTimeCallback(time.current / 1000);
+          setTimeAndCallback(auxTime * 1000);
         }}
         disabled={active}
       />
-      <input className="input" value={timePrinter(timeView * 1000)} disabled />
+      <input className="input" value={timePrinter(time)} disabled />
       <button
         className={"button " + (active ? "is-danger" : "is-success")}
         onClick={toggleActive}
