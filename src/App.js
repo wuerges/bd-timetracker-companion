@@ -125,7 +125,7 @@ function AccurateTimer(props) {
 
   const [time, setTime] = useState(props.data.initialTime * 1000);
 
-  const initial = useRef(props.data.lastKnownTime || new Date().getTime());
+  const initial = useRef(props.data.lastKnownTime);
   const accumulated = useRef(time);
 
   const [active, setActive] = useState(props.data.active);
@@ -135,7 +135,7 @@ function AccurateTimer(props) {
   }, [props.data.initialTime]);
 
   useEffect(() => {
-    setTimeCallback(time / 1000, active, new Date().getTime());
+    setTimeCallback(time / 1000, active);
     // eslint-disable-next-line
   }, [time, active]);
 
@@ -193,7 +193,7 @@ function App() {
   // Client Focal Point:           -> Default from local storage: 'focal_point'
 
   const initialDate = formatDate(new Date());
-  const theLastKnownTime = useRef(getFromLocalStorage("lkt", null));
+  const theLastKnownTime = getFromLocalStorage("lkt", new Date().getTime());
 
   const initial = {
     hours: 0,
@@ -215,7 +215,9 @@ function App() {
 
   function duplicate(e) {
     var newEntries = [...entries];
-    newEntries.unshift({ ...e, hours: 0 });
+    const newEntry = { ...e };
+    e.active = false;
+    newEntries.unshift(newEntry);
     setEntries(newEntries);
   }
 
@@ -249,6 +251,7 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem("entries", JSON.stringify(entries));
     window.localStorage.setItem("breakHourly", JSON.stringify(breakHourly));
+    window.localStorage.setItem("lkt", new Date().getTime());
   }, [entries, breakHourly]);
 
   return (
@@ -347,12 +350,11 @@ function App() {
                   <AccurateTimer
                     data={{
                       initialTime: e.hours,
-                      lastKnownTime: theLastKnownTime.current,
+                      lastKnownTime: theLastKnownTime,
                       active: e.active,
-                      callback: (currentTime, active, lastKnownTime) => {
+                      callback: (currentTime, active) => {
                         setHours(i, currentTime);
                         setActive(i, active);
-                        theLastKnownTime.current = lastKnownTime;
                       },
                     }}
                   />
