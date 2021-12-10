@@ -220,7 +220,9 @@ function App() {
 
   function duplicate(e) {
     var newEntries = [...entries];
-    newEntries.push({ ...e });
+    var newE = { ...e };
+    newE.hours = 0;
+    newEntries.push(newE);
     setEntries(newEntries);
   }
 
