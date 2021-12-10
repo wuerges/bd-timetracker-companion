@@ -125,19 +125,19 @@ function AccurateTimer(props) {
 
   const [time, setTime] = useState(props.data.initialTime * 1000);
 
-  const initial = useRef(new Date().getTime());
+  const initial = useRef(props.data.lastKnownTime || new Date().getTime());
   const accumulated = useRef(time);
 
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(props.data.active);
 
   useEffect(() => {
     setTime(props.data.initialTime * 1000);
   }, [props.data.initialTime]);
 
   useEffect(() => {
-    setTimeCallback(time / 1000);
+    setTimeCallback(time / 1000, active, new Date().getTime());
     // eslint-disable-next-line
-  }, [time]);
+  }, [time, active]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -158,12 +158,6 @@ function AccurateTimer(props) {
     }
     setActive(!active);
   }
-
-  console.log(
-    "Testing if should rerender:",
-    time,
-    props.data.initialTime * 1000
-  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -199,6 +193,7 @@ function App() {
   // Client Focal Point:           -> Default from local storage: 'focal_point'
 
   const initialDate = formatDate(new Date());
+  const theLastKnownTime = useRef(getFromLocalStorage("lkt", null));
 
   const initial = {
     hours: 0,
@@ -248,6 +243,9 @@ function App() {
   function setFocalPoint(i, v) {
     setToLocalStorage("focal_point", v);
     setEntries(set([...entries], i, "focal_point", v));
+  }
+  function setActive(i, v) {
+    setEntries(set([...entries], i, "active", v));
   }
 
   useEffect(() => {
@@ -351,7 +349,13 @@ function App() {
                   <AccurateTimer
                     data={{
                       initialTime: e.hours,
-                      callback: (t) => setHours(i, t),
+                      lastKnownTime: theLastKnownTime.current,
+                      active: e.active,
+                      callback: (currentTime, active, lastKnownTime) => {
+                        setHours(i, currentTime);
+                        setActive(i, active);
+                        theLastKnownTime.current = lastKnownTime;
+                      },
                     }}
                   />
                 </td>
