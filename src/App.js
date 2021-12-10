@@ -130,17 +130,19 @@ function AccurateTimer(props) {
 
   const [active, setActive] = useState(false);
 
-  function setTimeAndCallback(timeInMillis) {
-    setTimeCallback(timeInMillis / 1000);
-    setTime(timeInMillis);
-  }
+  useEffect(() => {
+    setTime(props.data.initialTime * 1000);
+  }, [props.data.initialTime]);
+
+  useEffect(() => {
+    setTimeCallback(time / 1000);
+    // eslint-disable-next-line
+  }, [time]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       if (active) {
-        setTimeAndCallback(
-          accumulated.current + new Date().getTime() - initial.current
-        );
+        setTime(accumulated.current + new Date().getTime() - initial.current);
       } else {
       }
     }, 1000);
@@ -157,6 +159,12 @@ function AccurateTimer(props) {
     setActive(!active);
   }
 
+  console.log(
+    "Testing if should rerender:",
+    time,
+    props.data.initialTime * 1000
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       <input
@@ -165,7 +173,7 @@ function AccurateTimer(props) {
         onChange={(event) => {
           var auxTime = Number.parseFloat(event.target.value);
           if (!auxTime) auxTime = 0;
-          setTimeAndCallback(auxTime * 1000);
+          setTime(auxTime * 1000);
         }}
         disabled={active}
       />
