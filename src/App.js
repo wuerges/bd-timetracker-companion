@@ -217,7 +217,7 @@ function App() {
     var newEntries = [...entries];
     const newEntry = { ...e };
     e.active = false;
-    newEntries.unshift(newEntry);
+    newEntries.push(newEntry);
     setEntries(newEntries);
   }
 
