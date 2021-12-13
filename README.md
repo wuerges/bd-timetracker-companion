@@ -17,6 +17,7 @@ You just need to enter the basic information and it will work:
    - You can change it any time.
 5. Make sure that you are in the BD timetracker activities list.
    - This is the first page after you log into the time tracker.
+6. Click the `Track entries` button and let the extension do its magic!
 
 ## A preview
 
